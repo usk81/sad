@@ -22,16 +22,6 @@ type listResponse struct {
 	Files []struct {
 		ID string `json:"id"`
 	} `json:"files"`
-	Users []struct {
-		ID      string `json:"id"`
-		Name    string `json:"name"`
-		Deleted bool   `json:deleted`
-		Updated int    `json:updated`
-	} `json:"members"`
-	Channels []struct {
-		ID      string `json:"id"`
-		Created int    `json:"created"`
-	} `json:"channels"`
 	Error string `json:"error"`
 }
 
@@ -59,20 +49,6 @@ func destroy(token string, from, to int) (err error) {
 	if token == "" {
 		return fmt.Errorf("token is empty")
 	}
-
-	// ru, err := userList(token)
-	// if err != nil {
-	// 	return err
-	// }
-	// us := ru.Users
-
-	// rc, err := channelList(token)
-	// if err != nil {
-	// 	return err
-	// }
-	// cs := rc.Channels
-
-	// fmt.Printf("%v\n", us)
 
 	i := 0
 	for {
@@ -103,55 +79,12 @@ func destroy(token string, from, to int) (err error) {
 			}
 		}
 	}
-
-	// for _, u := range us {
-	// 	fmt.Printf("user: %s\n", u.Name)
-	// 	for _, ch := range cs {
-	// 		if ch.Created > to {
-	// 			continue
-	// 		}
-	// 		if u.Deleted && ch.Created > u.Updated {
-	// 			continue
-	// 		}
-	// 		for {
-	// 			l, err := list(token, u.ID, ch.ID, from, to)
-	// 			if err != nil {
-	// 				return err
-	// 			}
-	// 			i++
-
-	// 			if i >= 30 {
-	// 				time.Sleep(10 * time.Second)
-	// 				i = 0
-	// 			}
-
-	// 			if len(l.Files) == 0 {
-	// 				break
-	// 			}
-
-	// 			for _, f := range l.Files {
-	// 				fmt.Printf("delete: %s\n", f.ID)
-	// 				if err = delete(token, f.ID); err != nil {
-	// 					return err
-	// 				}
-	// 				i++
-	// 				if i >= 30 {
-	// 					time.Sleep(10 * time.Second)
-	// 					i = 0
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 	return nil
 }
 
-// func list(token, u, ch string, from, to int) (result listResponse, err error) {
 func list(token string, from, to int) (result listResponse, err error) {
 	q := url.Values{}
 	q.Set("token", token)
-	// q.Set("user", u)
-	// q.Set("channel", ch)
 	q.Set("show_files_hidden_by_limit", "true")
 	q.Set("count", strconv.Itoa(count))
 	if from != 0 {
@@ -179,20 +112,6 @@ func delete(token string, id string) (err error) {
 	return nil
 }
 
-func userList(token string) (result listResponse, err error) {
-	q := url.Values{}
-	q.Set("token", token)
-	err = request(http.MethodGet, "users.list", q, &result)
-	return
-}
-
-func channelList(token string) (result listResponse, err error) {
-	q := url.Values{}
-	q.Set("token", token)
-	err = request(http.MethodGet, "channels.list", q, &result)
-	return
-}
-
 func request(method, p string, q url.Values, result interface{}) (err error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -200,8 +119,6 @@ func request(method, p string, q url.Values, result interface{}) (err error) {
 	}
 	u.Path = path.Join(u.Path, p)
 	u.RawQuery = q.Encode()
-
-	// fmt.Println(u.String())
 
 	req, err := http.NewRequest(method, u.String(), nil)
 	if err != nil {
